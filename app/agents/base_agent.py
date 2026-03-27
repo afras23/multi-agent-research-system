@@ -14,7 +14,7 @@ from abc import ABC, abstractmethod
 
 from app.config import Settings
 from app.core.exceptions import AgentError, AgentTimeoutError
-from app.orchestration.state import AgentCostEntry, ResearchState, utc_now
+from app.orchestration.state import AgentCostEntry, AgentMessage, ResearchState, utc_now
 from app.services.ai.client import LlmCallResult, LlmClient
 
 
@@ -93,3 +93,14 @@ class BaseAgent(ABC):
                 "latency_ms": latency_ms,
             },
         )
+
+    def _append_agent_message(self, state: ResearchState, content: str) -> None:
+        """Record an inter-agent log line on the orchestration state."""
+        state.agent_messages.append(
+            AgentMessage(
+                agent_name=self.name,
+                message_type="output",
+                content=content,
+            ),
+        )
+        state.updated_at = utc_now()

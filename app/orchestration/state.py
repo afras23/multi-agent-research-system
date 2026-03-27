@@ -1,8 +1,7 @@
 """
 LangGraph orchestration state models.
 
-Typed state shared across agents; serialised to JSON for persistence in later
-phases.
+Typed state shared across agents; serialised to JSON for persistence.
 """
 
 from __future__ import annotations
@@ -20,27 +19,61 @@ def utc_now() -> datetime:
 
 
 class ResearchFinding(BaseModel):
-    """A single sourced research snippet."""
+    """A single structured research finding with simulated provenance."""
 
-    title: str
-    summary: str
+    topic: str
+    summary: str = Field(description="Two to three sentences")
+    source: str = Field(description="Simulated source label")
     source_url: str | None = None
+    confidence: float = Field(ge=0.0, le=1.0)
+    raw_text: str = Field(description="Raw LLM output for this finding")
+
+
+class RiskItem(BaseModel):
+    """A risk identified during analysis."""
+
+    description: str
+    severity: Literal["high", "medium", "low"]
+    source: str = Field(description="Supporting finding topic or note")
+
+
+class OpportunityItem(BaseModel):
+    """An opportunity identified during analysis."""
+
+    description: str
+    rationale: str = Field(default="", description="Why this is an opportunity")
 
 
 class AnalysisResult(BaseModel):
-    """Structured output from the analysis step."""
+    """Structured synthesis from the analysis step."""
 
-    executive_summary: str
     key_themes: list[str] = Field(default_factory=list)
-    key_risks: list[str] = Field(default_factory=list)
+    risks: list[RiskItem] = Field(default_factory=list)
+    opportunities: list[OpportunityItem] = Field(default_factory=list)
+    competitive_position: str = Field(description="Two to three sentences")
+    financial_outlook: str = Field(description="Two to three sentences")
+    gaps_identified: list[str] = Field(default_factory=list)
+    contradictions: list[str] = Field(default_factory=list)
+
+
+class QualityIssue(BaseModel):
+    """A concrete issue flagged by the quality agent."""
+
+    description: str
+    severity: Literal["high", "medium", "low"]
+    location_in_report: str | None = None
 
 
 class QualityScore(BaseModel):
-    """Scores from the quality review step."""
+    """Structured quality review scores (0–100 scale)."""
 
-    overall: float = Field(ge=0.0, le=1.0)
-    citation_coverage: float = Field(ge=0.0, le=1.0)
-    notes: str | None = None
+    overall_score: float = Field(ge=0.0, le=100.0)
+    source_coverage: float = Field(ge=0.0, le=100.0)
+    completeness: float = Field(ge=0.0, le=100.0)
+    accuracy: float = Field(ge=0.0, le=100.0)
+    coherence: float = Field(ge=0.0, le=100.0)
+    issues: list[QualityIssue] = Field(default_factory=list)
+    recommendation: Literal["approve", "revise", "reject"]
 
 
 class AgentCostEntry(BaseModel):
@@ -75,6 +108,7 @@ class ResearchState(BaseModel):
         "quality_check",
         "completed",
         "failed",
+        "rejected",
     ]
 
     research_findings: list[ResearchFinding] = Field(default_factory=list)

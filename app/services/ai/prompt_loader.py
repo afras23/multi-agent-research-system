@@ -1,7 +1,8 @@
 """
 Prompt loader for versioned templates.
 
-Templates live in app.services.ai.prompts as modules named `{name}_{version}`.
+Templates live in the ``app.services.ai.prompts`` package as modules named
+``{name}_{version}``.
 """
 
 from __future__ import annotations
