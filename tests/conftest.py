@@ -4,6 +4,11 @@ Shared pytest fixtures.
 
 from __future__ import annotations
 
+import os
+
+os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://test:test@localhost:5432/test_db")
+os.environ.setdefault("OPENAI_API_KEY", "test-openai-key-for-ci")
+
 import pytest
 from app.config import Settings
 

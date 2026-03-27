@@ -58,6 +58,11 @@ class Settings(BaseSettings):
         ge=1,
         description="Maximum concurrent agent executions",
     )
+    research_subtask_timeout_seconds: int = Field(
+        default=60,
+        ge=1,
+        description="Timeout for each parallel research sub-call (LLM per topic area)",
+    )
 
     cors_allow_origins: list[str] = Field(
         default_factory=list,

@@ -99,6 +99,7 @@ class ResearchState(BaseModel):
     task_id: UUID
     company_name: str
     research_brief: str
+    industry_context: str | None = None
     status: Literal[
         "pending",
         "researching",
@@ -122,6 +123,16 @@ class ResearchState(BaseModel):
 
     checkpoint_status: Literal["not_reached", "pending", "approved", "rejected"] = "not_reached"
     checkpoint_reviewer: str | None = None
+    rejection_reason: str | None = None
+
+    total_pipeline_latency_ms: float = Field(
+        default=0.0,
+        description="Wall-clock latency for the orchestrated run segments",
+    )
+    failure_reason: str | None = Field(
+        default=None,
+        description="Set when status is failed (e.g. timeout)",
+    )
 
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)

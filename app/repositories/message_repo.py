@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from uuid import UUID, uuid4
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.agent_message import AgentMessageRow
@@ -47,6 +47,22 @@ class MessageRepository:
 
     async def log_messages(self, task_id: UUID, messages: list[AgentMessage]) -> None:
         """Persist a batch of orchestration ``AgentMessage`` records."""
+        for msg in messages:
+            await self.append_message(
+                task_id=task_id,
+                agent_name=msg.agent_name,
+                message_type=msg.message_type,
+                content=msg.content,
+                tokens_used=0,
+                cost_usd=0.0,
+                latency_ms=0.0,
+            )
+
+    async def replace_task_messages(self, task_id: UUID, messages: list[AgentMessage]) -> None:
+        """Replace all stored messages for a task with the current orchestration list."""
+        await self._session.execute(
+            delete(AgentMessageRow).where(AgentMessageRow.task_id == task_id),
+        )
         for msg in messages:
             await self.append_message(
                 task_id=task_id,

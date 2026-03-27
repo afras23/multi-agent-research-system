@@ -128,3 +128,27 @@ class TaskNotFoundError(BaseAppError):
             error_code="TASK_NOT_FOUND",
             context={"task_id": task_id},
         )
+
+
+class ReportNotReadyError(BaseAppError):
+    """Report is not available yet (pipeline still running)."""
+
+    def __init__(self, task_id: str, *, detail: str) -> None:
+        super().__init__(
+            message=detail,
+            status_code=409,
+            error_code="REPORT_NOT_READY",
+            context={"task_id": task_id},
+        )
+
+
+class ReportNotFoundError(BaseAppError):
+    """No final report exists for this task (failed, rejected, or not finished)."""
+
+    def __init__(self, task_id: str) -> None:
+        super().__init__(
+            message="Report not available for this task",
+            status_code=404,
+            error_code="REPORT_NOT_FOUND",
+            context={"task_id": task_id},
+        )

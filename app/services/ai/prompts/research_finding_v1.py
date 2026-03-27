@@ -10,6 +10,7 @@ SYSTEM = (
 
 USER_TEMPLATE = (
     "Company: {company}\n"
+    "Industry context:\n{industry_context}\n"
     "Brief:\n{research_brief}\n"
     "Information area:\n{area}\n\n"
     "Produce one JSON object for this area. "

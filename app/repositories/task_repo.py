@@ -4,6 +4,8 @@ Research task persistence repository.
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
+from typing import Any
 from uuid import UUID, uuid4
 
 from sqlalchemy import func, select
@@ -28,6 +30,7 @@ class TaskRepository:
     async def create_placeholder(
         self,
         *,
+        task_id: UUID | None = None,
         company_name: str,
         research_brief: str,
         status: str,
@@ -35,7 +38,7 @@ class TaskRepository:
     ) -> ResearchTask:
         """Insert a minimal task row for orchestration bootstrap (Phase 1 stub)."""
         row = ResearchTask(
-            id=uuid4(),
+            id=task_id or uuid4(),
             company_name=company_name,
             research_brief=research_brief,
             status=status,
@@ -54,6 +57,7 @@ class TaskRepository:
         row.status = state.status
         total_cost = sum(entry.total_cost_usd for entry in state.agent_costs.values())
         row.total_cost_usd = total_cost
+        row.total_latency_ms = state.total_pipeline_latency_ms
         await self._session.flush()
 
     async def load_state(self, task_id: UUID) -> ResearchState:
@@ -93,3 +97,72 @@ class TaskRepository:
         stmt = base.order_by(ResearchTask.created_at.desc()).offset(offset).limit(page_size)
         rows = (await self._session.execute(stmt)).scalars().all()
         return list(rows), total
+
+    async def aggregate_operational_metrics(
+        self,
+        *,
+        utc_day_start: datetime,
+        cost_limit_usd: float,
+    ) -> dict[str, Any]:
+        """
+        Aggregate dashboard metrics for tasks created on or after ``utc_day_start`` (UTC).
+
+        Args:
+            utc_day_start: Inclusive start of the reporting window (UTC).
+            cost_limit_usd: Configured daily cost cap (for response payload).
+
+        Returns:
+            Metrics fields for ``/api/v1/metrics``.
+        """
+        base = select(ResearchTask).where(ResearchTask.created_at >= utc_day_start)
+        rows = (await self._session.execute(base)).scalars().all()
+
+        tasks_today = len(rows)
+        tasks_completed = sum(1 for r in rows if r.status == "completed")
+        tasks_failed = sum(1 for r in rows if r.status == "failed")
+
+        completed_latencies = [r.total_latency_ms for r in rows if r.status == "completed"]
+        avg_latency_ms = (
+            sum(completed_latencies) / len(completed_latencies) if completed_latencies else 0.0
+        )
+
+        cost_today_usd = sum(r.total_cost_usd for r in rows)
+
+        agent_keys = (
+            "research_agent",
+            "analysis_agent",
+            "writer_agent",
+            "quality_agent",
+        )
+        cost_per_agent: dict[str, float] = {k: 0.0 for k in agent_keys}
+        quality_scores: list[float] = []
+        for row in rows:
+            payload = row.state_json or {}
+            costs = payload.get("agent_costs") or {}
+            if isinstance(costs, dict):
+                for key in agent_keys:
+                    entry = costs.get(key)
+                    if isinstance(entry, dict) and "total_cost_usd" in entry:
+                        cost_per_agent[key] += float(entry["total_cost_usd"])
+            qs = payload.get("quality_score")
+            if isinstance(qs, dict) and "overall_score" in qs:
+                quality_scores.append(float(qs["overall_score"]))
+
+        avg_quality = sum(quality_scores) / len(quality_scores) if quality_scores else 0.0
+
+        return {
+            "tasks_today": tasks_today,
+            "tasks_completed": tasks_completed,
+            "tasks_failed": tasks_failed,
+            "avg_latency_ms": round(avg_latency_ms, 2),
+            "cost_today_usd": round(cost_today_usd, 4),
+            "cost_limit_usd": cost_limit_usd,
+            "cost_per_agent": {k: round(v, 4) for k, v in cost_per_agent.items()},
+            "avg_quality_score": round(avg_quality, 2),
+        }
+
+
+def utc_start_of_today() -> datetime:
+    """Return UTC midnight for the current calendar day."""
+    now = datetime.now(UTC)
+    return now.replace(hour=0, minute=0, second=0, microsecond=0)

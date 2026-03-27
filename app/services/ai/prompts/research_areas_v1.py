@@ -9,6 +9,7 @@ SYSTEM = (
 
 USER_TEMPLATE = (
     "Company: {company}\n"
+    "Industry context:\n{industry_context}\n"
     "Research brief:\n{research_brief}\n\n"
     "Return a JSON array of strings, each naming one information area to investigate."
 )

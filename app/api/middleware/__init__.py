@@ -1,7 +1,5 @@
-"""
-API middleware package.
-"""
+"""API middleware re-exports (see ``app.core.middleware``)."""
 
-from app.api.middleware.correlation import CorrelationIdMiddleware
+from app.core.middleware import CorrelationIdMiddleware, RequestLoggingMiddleware
 
-__all__ = ["CorrelationIdMiddleware"]
+__all__ = ["CorrelationIdMiddleware", "RequestLoggingMiddleware"]

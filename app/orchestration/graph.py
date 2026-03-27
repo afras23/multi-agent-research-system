@@ -85,8 +85,13 @@ def build_research_graph(deps: GraphDependencies) -> Any:
         rs = ResearchState.model_validate(state["research_state"])
         try:
             rs = await deps.research_agent.run(rs)
-        except (AgentError, AgentTimeoutError):
+        except AgentTimeoutError as exc:
             rs.status = "failed"
+            rs.failure_reason = f"Agent {exc.agent_name} timed out"
+            rs.updated_at = utc_now()
+        except AgentError as exc:
+            rs.status = "failed"
+            rs.failure_reason = exc.message
             rs.updated_at = utc_now()
         return {"research_state": _serialise(rs)}
 
@@ -94,8 +99,13 @@ def build_research_graph(deps: GraphDependencies) -> Any:
         rs = ResearchState.model_validate(state["research_state"])
         try:
             rs = await deps.analysis_agent.run(rs)
-        except (AgentError, AgentTimeoutError):
+        except AgentTimeoutError as exc:
             rs.status = "failed"
+            rs.failure_reason = f"Agent {exc.agent_name} timed out"
+            rs.updated_at = utc_now()
+        except AgentError as exc:
+            rs.status = "failed"
+            rs.failure_reason = exc.message
             rs.updated_at = utc_now()
         return {"research_state": _serialise(rs)}
 
@@ -122,8 +132,13 @@ def build_research_graph(deps: GraphDependencies) -> Any:
         rs = ResearchState.model_validate(state["research_state"])
         try:
             rs = await deps.writer_agent.run(rs)
-        except (AgentError, AgentTimeoutError):
+        except AgentTimeoutError as exc:
             rs.status = "failed"
+            rs.failure_reason = f"Agent {exc.agent_name} timed out"
+            rs.updated_at = utc_now()
+        except AgentError as exc:
+            rs.status = "failed"
+            rs.failure_reason = exc.message
             rs.updated_at = utc_now()
         return {"research_state": _serialise(rs)}
 
@@ -133,8 +148,13 @@ def build_research_graph(deps: GraphDependencies) -> Any:
             rs = await deps.quality_agent.run(rs)
             rs.status = "completed"
             rs.updated_at = utc_now()
-        except (AgentError, AgentTimeoutError):
+        except AgentTimeoutError as exc:
             rs.status = "failed"
+            rs.failure_reason = f"Agent {exc.agent_name} timed out"
+            rs.updated_at = utc_now()
+        except AgentError as exc:
+            rs.status = "failed"
+            rs.failure_reason = exc.message
             rs.updated_at = utc_now()
         return {"research_state": _serialise(rs)}
 
