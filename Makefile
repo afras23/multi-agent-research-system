@@ -1,4 +1,4 @@
-.PHONY: dev test lint format typecheck migrate docker clean evaluate
+.PHONY: dev test testing lint format typecheck migrate docker clean evaluate
 
 PYTHON ?= python3
 PIP ?= pip3
@@ -9,11 +9,13 @@ dev:
 test:
 	pytest tests/
 
+testing: test
+
 lint:
-	ruff check app/ tests/
+	ruff check app/ tests/ scripts/
 
 format:
-	ruff format app/ tests/
+	ruff format app/ tests/ scripts/
 
 typecheck:
 	mypy app/
@@ -29,4 +31,4 @@ clean:
 	rm -rf .pytest_cache .mypy_cache .ruff_cache htmlcov .coverage
 
 evaluate:
-	$(PYTHON) scripts/evaluate.py
+	PYTHONPATH=. $(PYTHON) scripts/evaluate.py

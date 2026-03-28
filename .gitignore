@@ -22,6 +22,7 @@ build/
 .DS_Store
 
 # Project
+eval/results/*.json
 *.db
 *.sqlite3
 *.log

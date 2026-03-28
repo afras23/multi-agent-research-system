@@ -38,10 +38,10 @@ jobs:
           pip install -r requirements-dev.txt
 
       - name: Ruff check
-        run: ruff check app/ tests/
+        run: ruff check app/ tests/ scripts/
 
       - name: Ruff format check
-        run: ruff format --check app/ tests/
+        run: ruff format --check app/ tests/ scripts/
 
       - name: Mypy
         run: mypy app/

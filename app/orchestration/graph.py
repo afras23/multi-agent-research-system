@@ -110,14 +110,17 @@ def build_research_graph(deps: GraphDependencies) -> Any:
         return {"research_state": _serialise(rs)}
 
     async def checkpoint_node(state: ResearchGraphState) -> ResearchGraphState:
-        tid = ResearchState.model_validate(state["research_state"]).task_id
-        rs = await deps.checkpoint_manager.refresh(tid)
-        if rs.checkpoint_status == "rejected":
+        rs = ResearchState.model_validate(state["research_state"])
+        tid = rs.task_id
+        persisted = await deps.checkpoint_manager.refresh(tid)
+        if persisted.checkpoint_status == "rejected":
+            rs = persisted
             rs.status = "rejected"
             rs.updated_at = utc_now()
             await deps.checkpoint_manager.save_research_state(rs)
             return {"research_state": _serialise(rs)}
-        if rs.checkpoint_status == "approved":
+        if persisted.checkpoint_status == "approved":
+            rs = persisted
             rs.status = "writing"
             rs.updated_at = utc_now()
             await deps.checkpoint_manager.save_research_state(rs)
