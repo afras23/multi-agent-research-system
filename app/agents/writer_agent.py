@@ -33,9 +33,7 @@ class WriterAgent(BaseAgent):
             f"- {f.topic}: {f.summary} [{f.source}]" for f in state.research_findings
         )
         analysis_block = (
-            state.analysis_result.model_dump_json(indent=2)
-            if state.analysis_result
-            else "{}"
+            state.analysis_result.model_dump_json(indent=2) if state.analysis_result else "{}"
         )
         sys_p, usr_p, pv = get_prompt(
             "writer_report",

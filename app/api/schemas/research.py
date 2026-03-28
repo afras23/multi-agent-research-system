@@ -4,11 +4,12 @@ Request and response models for research HTTP API.
 
 from __future__ import annotations
 
+import re
 from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class ResearchRequest(BaseModel):
@@ -20,6 +21,27 @@ class ResearchRequest(BaseModel):
         default=None,
         description="Optional sector, geography, or regulatory context",
     )
+
+    @field_validator("company_name", "research_brief", mode="before")
+    @classmethod
+    def strip_outer_whitespace(cls, value: object) -> object:
+        """Remove leading/trailing whitespace from user-supplied text fields."""
+        if isinstance(value, str):
+            return value.strip()
+        return value
+
+    @field_validator("company_name", mode="after")
+    @classmethod
+    def strip_html_angle_brackets(cls, value: str) -> str:
+        """Remove common HTML/script fragments from user-supplied company names."""
+        without_script = re.sub(
+            r"<script[^>]*>.*?</script>",
+            "",
+            value,
+            flags=re.DOTALL | re.IGNORECASE,
+        )
+        without_tags = re.sub(r"<[^>]*>", "", without_script)
+        return without_tags.strip()
 
     model_config = {
         "json_schema_extra": {

@@ -11,6 +11,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy.exc import OperationalError
 
 from app.agents.analysis_agent import AnalysisAgent
 from app.agents.quality_agent import QualityAgent
@@ -92,6 +93,28 @@ def create_app() -> FastAPI:
             ),
         )
         return JSONResponse(status_code=exc.status_code, content=body.model_dump())
+
+    @app.exception_handler(OperationalError)
+    async def handle_operational_error(request: Request, exc: OperationalError) -> JSONResponse:
+        """Return 503 when the database is unavailable."""
+        started = time.perf_counter()
+        correlation_id = (
+            get_correlation_id() or request.headers.get("X-Correlation-ID") or "unknown"
+        )
+        elapsed_ms = (time.perf_counter() - started) * 1000.0
+        body = ErrorEnvelope(
+            error=ErrorDetail(
+                code="DATABASE_UNAVAILABLE",
+                message="Database temporarily unavailable",
+                details={"reason": str(exc.orig) if getattr(exc, "orig", None) else str(exc)},
+            ),
+            metadata=ResponseMetadata(
+                correlation_id=correlation_id,
+                timestamp=utc_timestamp(),
+                processing_time_ms=elapsed_ms,
+            ),
+        )
+        return JSONResponse(status_code=503, content=body.model_dump())
 
     app.include_router(health.router, prefix=API_PREFIX)
     app.include_router(research.router, prefix=API_PREFIX)

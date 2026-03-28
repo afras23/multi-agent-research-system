@@ -89,8 +89,12 @@ class TaskRepository:
         count_stmt = select(func.count()).select_from(ResearchTask)
         if status_filter is not None:
             base = base.where(ResearchTask.status == status_filter)
-            count_stmt = select(func.count()).select_from(ResearchTask).where(
-                ResearchTask.status == status_filter,
+            count_stmt = (
+                select(func.count())
+                .select_from(ResearchTask)
+                .where(
+                    ResearchTask.status == status_filter,
+                )
             )
         total = int((await self._session.execute(count_stmt)).scalar_one())
         offset = (page - 1) * page_size

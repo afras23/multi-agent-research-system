@@ -49,9 +49,7 @@ def _resp(content: str) -> MagicMock:
 @pytest.mark.asyncio
 async def test_parallel_research_subtasks_run_concurrently() -> None:
     areas_json = '["A", "B", "C"]'
-    finding_json = (
-        '{"topic":"X","summary":"S.","source":"SRC","source_url":null,"confidence":0.5}'
-    )
+    finding_json = '{"topic":"X","summary":"S.","source":"SRC","source_url":null,"confidence":0.5}'
     starts: list[float] = []
     lock = asyncio.Lock()
     call_idx = 0

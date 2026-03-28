@@ -171,9 +171,7 @@ class ResearchAgent(BaseAgent):
                 self._track_cost(state, llm_res)
             state.research_findings.append(finding)
 
-        msg = (
-            f"Research completed: {len(state.research_findings)} findings on {state.company_name}"
-        )
+        msg = f"Research completed: {len(state.research_findings)} findings on {state.company_name}"
         self._logger.info(
             msg,
             extra={
