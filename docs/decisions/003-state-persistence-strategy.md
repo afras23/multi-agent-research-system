@@ -46,6 +46,12 @@ Use **PostgreSQL** as the **system of record** for research run metadata and **c
 - Store **summaries and references** in checkpoint state; cap embedded payload sizes via settings.
 - Add blob strategy in a later phase if evaluation shows storage pressure.
 
+## Implementation alignment (as built)
+
+- **Research run records and serialised orchestration state** live in **PostgreSQL** via `TaskRepository` / Alembic models (task status, JSON state, messages, audit-friendly fields).
+- The **compiled LangGraph** uses an in-memory **`MemorySaver`** checkpointer for interrupt/resume mechanics within a process; **long-lived truth** for “what to show the analyst” and **post-restart continuity** is the **persisted `ResearchState`** in Postgres, reloaded on approve/reject and listing.
+- A future iteration may swap `MemorySaver` for a Postgres-backed LangGraph checkpointer without changing the external API; see `app/orchestration/graph.py`.
+
 ## Links
 
 - `docs/architecture.md` — persistence layer

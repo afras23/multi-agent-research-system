@@ -20,12 +20,13 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "${API_PORT:-8000}:8000"
+      - "${APP_PORT:-8000}:8000"
     env_file:
       - .env
     environment:
       DATABASE_URL: postgresql+asyncpg://${DB_USER:-appuser}:${DB_PASSWORD:-apppass}@db:5432/${DB_NAME:-research_db}
       OPENAI_API_KEY: ${OPENAI_API_KEY:?set in .env}
+      APP_PORT: "8000"
     depends_on:
       db:
         condition: service_healthy

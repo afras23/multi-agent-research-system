@@ -5,7 +5,7 @@ Loads all settings from the environment via Pydantic Settings for use across
 routes, services, and agents.
 """
 
-from pydantic import Field, field_validator
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -18,7 +18,16 @@ class Settings(BaseSettings):
     log_level: str = Field(default="INFO", description="Logging level")
 
     api_host: str = Field(default="0.0.0.0", description="Bind host for Uvicorn")
-    api_port: int = Field(default=8000, description="Bind port for Uvicorn")
+    api_port: int = Field(
+        default=8000,
+        ge=1,
+        le=65535,
+        description=(
+            "Bind port for Uvicorn. Environment: APP_PORT (preferred) or API_PORT. "
+            "Compose maps host port to container 8000; the app service sets APP_PORT=8000 inside."
+        ),
+        validation_alias=AliasChoices("APP_PORT", "API_PORT"),
+    )
 
     database_url: str = Field(
         ...,
