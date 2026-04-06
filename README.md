@@ -1,5 +1,7 @@
 # Multi-Agent Research System
 
+![CI](https://github.com/afras23/multi-agent-research-system/actions/workflows/ci.yml/badge.svg)
+
 ## AI Agents Collaborate to Produce Company Research Reports
 
 ## 6 hours → 10 minutes | Cited sources | Quality scoring | Human oversight
