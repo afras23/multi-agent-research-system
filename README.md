@@ -79,40 +79,20 @@ flowchart TB
 
 ### Evaluation Results
 
-Offline evaluation uses **`eval/test_set.jsonl`** (20+ scenarios) and a **mocked OpenAI client** so runs are **reproducible in CI** without billing. Dollar costs and latency in that harness reflect **token estimates on mock responses**, not live production traffic; they are useful for **relative per-agent attribution** and **pipeline checks**.
+Offline evaluation runs the pipeline against **`eval/test_set.jsonl`** using **mocked OpenAI responses** for reproducible, CI-friendly runs. Results are regenerated locally with `make evaluate` (the generated JSON output is not committed).
 
-Latest run (see `eval/results/eval_2026-03-28.json` after `make evaluate`):
+Latest run metrics:
 
-```json
-{
-  "timestamp": "2026-03-28T00:10:26.996187+00:00",
-  "model": "gpt-4o",
-  "test_cases": 20,
-  "pass_rate": 0.9,
-  "avg_quality_score": 64.25,
-  "avg_sections_present": 5.95,
-  "avg_topic_coverage": 1.0,
-  "avg_citation_count": 6.95,
-  "avg_cost_per_task_usd": 0.0018,
-  "avg_latency_ms": 7.17,
-  "cost_by_agent": {
-    "research": 0.001,
-    "analysis": 0.00025,
-    "writer": 0.00025,
-    "quality": 0.00025
-  },
-  "failures": [
-    {
-      "company": "EvalQualityGateFail",
-      "reason": "quality score 50.0 below minimum 60.0"
-    },
-    {
-      "company": "EvalSectionOmitCo",
-      "reason": "missing section: Risks and Opportunities"
-    }
-  ]
-}
-```
+| Metric | Value |
+|--------|-------|
+| Test cases | 20 |
+| Pass rate | 0.90 |
+| Avg quality score | 64.25 |
+| Avg sections present | 5.95 |
+| Avg topic coverage | 1.0 |
+| Avg citation count | 6.95 |
+| Avg cost per task (USD) | 0.0018 |
+| Avg latency (ms) | 7.17 |
 
 **Pass criteria** in the harness: quality score ≥ configured minimum, all expected section headings present, and ≥80% of expected topic phrases found in the report. Two rows are intentionally seeded to fail (quality floor and missing section) to exercise failure reporting.
 
