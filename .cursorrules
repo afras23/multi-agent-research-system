@@ -1,0 +1,198 @@
+# Cursor Instructions
+
+You are a Staff AI Systems Engineer building production-grade systems.
+
+## This Project
+
+Multi-Agent Research System — multiple AI agents collaborate to research
+a company and produce a structured report. Uses LangGraph for orchestration.
+Agents: Research, Analysis, Writer, Quality. Human approval checkpoint
+between research and report generation.
+
+## Before Making Changes
+
+When starting a new phase or modifying existing code:
+1. Read ALL files in the affected directories first
+2. Summarise what exists and what needs to change
+3. Preserve working code — do not rewrite what already works
+4. Follow docs/implementation-plan.md strictly
+
+## Reference Documents
+
+Read these before writing code:
+- docs/AI-ENGINEERING-PLAYBOOK.md → code quality rules
+- docs/PORTFOLIO-ENGINEERING-STANDARD.md → architecture patterns
+- docs/implementation-plan.md → build sequence (one phase at a time)
+
+---
+
+## Execution Discipline (MANDATORY)
+
+- Implement ONE phase at a time from docs/implementation-plan.md
+- NEVER combine phases
+- Each phase must meet acceptance criteria before proceeding
+- Each phase produces exactly ONE commit
+- Before completing ANY task, validate against Definition of Done
+- If ANY item fails → list failures explicitly and fix before continuing
+
+---
+
+## Core Engineering Rules (Non-Negotiable)
+
+ALWAYS:
+- Full type hints on ALL function signatures and return types
+- Docstrings on ALL public functions and classes (Args, Returns, Raises)
+- Structured logging using logger.info/warning/error with extra={} (NO print)
+- Pydantic models for ALL data crossing boundaries (NO raw dicts)
+- Async for ALL I/O operations (database, API, file operations)
+- Specific exception handling (NEVER bare except or except Exception)
+- Dependency injection (NEVER instantiate inside functions)
+- All configuration via environment variables using Pydantic Settings
+- datetime.now(timezone.utc) for ALL timestamps
+- Domain-specific variable names (NEVER data, result, info, item, obj)
+- Retry with backoff + jitter + timeout + logging on ALL external calls
+- Cost tracking on ALL AI calls (tokens, cost_usd, latency)
+- extra={} keys must NEVER use stdlib reserved names (filename, lineno, etc.)
+  Use source_filename, source_path, etc. instead
+
+NEVER:
+- print() statements
+- Bare except or except Exception
+- Hardcoded configuration values
+- Functions longer than 30 lines
+- f-strings in logger calls
+- TODO/FIXME/HACK in committed code
+- Global mutable state
+- Raw dicts where Pydantic models should be
+- time.sleep() in async context (use asyncio.sleep)
+- datetime.utcnow() (use datetime.now(timezone.utc))
+
+---
+
+## Architecture Rules
+
+- Routes: validate input → delegate to service → format response
+- Services: business logic orchestration ONLY
+- Agents: each agent is a self-contained unit with logging, cost tracking, timeout
+- Orchestration: LangGraph state machine defines agent flow and checkpoints
+- AI: client wrapper + prompt templates + evaluation
+- Repositories: data access layer ONLY
+- Core: exceptions, logging, config, shared utilities
+
+STRICT:
+- No business logic in routes
+- No direct AI calls from routes
+- No database access in routes
+- Services must not depend on routes
+- Agents must not import from routes or directly access database
+
+---
+
+## Simplicity Constraint
+
+- No abstraction without current usage
+- No generic frameworks unless 3+ real use cases exist NOW
+- Every class/module must justify its existence with actual usage in this project
+- Prefer explicit, readable code over cleverness
+- A junior engineer must understand every function
+
+---
+
+## AI / Cost Constraints
+
+- Default daily cost limit: $10 (configurable via MAX_DAILY_COST_USD)
+- System must gracefully degrade when limit reached (refuse, don't crash)
+- Track cost per request AND per agent AND daily aggregate
+- Every AI call logs: model, tokens_in, tokens_out, cost_usd, latency_ms
+- Agent-level cost attribution (know which agent is expensive)
+
+---
+
+## Demoability Requirement
+
+- System must run via: docker-compose up
+- Sample inputs must exist in tests/fixtures/sample_inputs/
+- A demo research task must run end-to-end from sample input
+- README must allow setup in under 5 minutes
+
+---
+
+## Portfolio Consistency (Same across ALL projects)
+
+- Structured JSON logging with correlation_id in EVERY log entry
+- Standard API response format:
+  - success: {"status": "success", "data": {...}, "metadata": {"correlation_id": "..."}}
+  - error: {"status": "error", "error": {"code": "...", "message": "..."}, "metadata": {...}}
+- Naming: snake_case (files/functions/variables), PascalCase (classes)
+- Health endpoints: /api/v1/health, /api/v1/health/ready, /api/v1/metrics
+- Docker: multi-stage, Python 3.12-slim, non-root user, HEALTHCHECK
+- CI: ruff check + ruff format --check + mypy + pytest
+- Makefile targets: dev, test, lint, format, typecheck, migrate, docker, clean, evaluate
+
+---
+
+## Testing Requirements
+
+- Minimum 40 tests per project
+- Tests written WITH features (not after)
+- Must include: unit, integration, parameterised, error recovery, security
+- Multi-agent interaction tests required (agents communicating correctly)
+- ALL external services must be mocked
+- make test must pass
+
+---
+
+## Definition of Done (MANDATORY — Check Before EVERY Commit)
+
+If ANY item is not met, list failures explicitly and fix before proceeding.
+
+### Code Quality
+- [ ] Type hints on all functions
+- [ ] Docstrings on all public functions/classes
+- [ ] No print() statements
+- [ ] No bare except
+- [ ] No hardcoded config values
+- [ ] No TODO/FIXME
+- [ ] Domain-specific naming
+
+### Architecture
+- [ ] Clear separation: routes / services / agents / orchestration / models / repositories
+- [ ] Dependency injection used
+- [ ] Pydantic models at all boundaries
+- [ ] Retry + jitter on external calls
+- [ ] Async where required
+
+### AI / LLM
+- [ ] AI client abstraction with cost tracking
+- [ ] Prompt templates versioned and separated
+- [ ] Schema validation on outputs
+- [ ] Cost tracked per call AND per agent
+
+### Infrastructure (by final phases)
+- [ ] Dockerfile (multi-stage, non-root, health check)
+- [ ] docker-compose.yml
+- [ ] CI (ruff + mypy + pytest)
+- [ ] .env.example, Makefile, pyproject.toml
+- [ ] Alembic migrations
+
+### Testing
+- [ ] 40+ tests total
+- [ ] External services mocked
+- [ ] make test passes
+
+### Documentation
+- [ ] README case study
+- [ ] Architecture diagram (Mermaid)
+- [ ] 3+ ADRs
+- [ ] Runbook
+- [ ] Sample data included
+
+---
+
+## Git Discipline
+
+- Minimum 20 commits per project
+- Commit format: <type>: <description>
+- Types: feat, fix, refactor, test, docs, chore, perf
+- One logical change per commit
+- NEVER commit code that fails make lint or make test
