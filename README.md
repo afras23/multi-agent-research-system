@@ -275,10 +275,8 @@ See [`docs/decisions/`](docs/decisions/) for full ADRs (001–004).
 |----------|---------|
 | [`docs/architecture.md`](docs/architecture.md) | Architecture and Mermaid diagrams |
 | [`docs/problem-definition.md`](docs/problem-definition.md) | Problem scope |
-| [`docs/implementation-plan.md`](docs/implementation-plan.md) | Phased delivery |
 | [`docs/decisions/`](docs/decisions/) | ADRs 001–004 |
 | [`docs/runbook.md`](docs/runbook.md) | Operations, monitoring, troubleshooting |
-| [`docs/definition-of-done-checklist.md`](docs/definition-of-done-checklist.md) | DoD verification (PASS/FAIL) |
 | [`CHANGELOG.md`](CHANGELOG.md) | Phase history |
 
 ### License
