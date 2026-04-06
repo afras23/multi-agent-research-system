@@ -150,93 +150,14 @@ make test       # pytest
 make evaluate   # offline harness → eval/results/eval_YYYY-MM-DD.json
 ```
 
-#### 1. Prerequisites
-
-- **Python 3.12+** (project targets 3.12; 3.11 often works for local dev)
-- **PostgreSQL 16** (or use Docker Compose for the database)
-- **OpenAI API key** for live LLM calls (optional for running tests; CI uses mocks)
-
-#### 2. Configure environment
+#### Local development (optional)
 
 ```bash
 cp .env.example .env
-# Edit .env: set DATABASE_URL, OPENAI_API_KEY, and optional cost limits
-```
-
-All variables are documented in `.env.example`.
-
-#### 3. Install dependencies
-
-```bash
 make dev
-# or: pip install -r requirements.txt && pip install -r requirements-dev.txt
-```
-
-#### 4. Database migrations
-
-Ensure PostgreSQL is reachable, then:
-
-```bash
 make migrate
-```
-
-#### 5. Run the API (local)
-
-```bash
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
-
-#### 6. Run with Docker Compose (app + Postgres)
-
-```bash
-docker compose up --build
-```
-
-The API listens on **port 8000** by default. The image runs as a **non-root** user and exposes a **HEALTHCHECK** against `/api/v1/health`.
-
-#### 7. Quick checks
-
-```bash
-# Liveness
-curl -s http://127.0.0.1:8000/api/v1/health | jq .
-
-# Readiness (includes DB)
-curl -s http://127.0.0.1:8000/api/v1/health/ready | jq .
-
-# Metrics summary
-curl -s http://127.0.0.1:8000/api/v1/metrics | jq .
-```
-
-#### 8. Start a research task (example)
-
-```bash
-curl -s -X POST http://127.0.0.1:8000/api/v1/research \
-  -H "Content-Type: application/json" \
-  -d '{
-    "company_name": "Example Corp",
-    "research_brief": "Summarise competitive position and key risks for the next 12 months.",
-    "industry_context": "Enterprise software, US and EU"
-  }' | jq .
-```
-
-Use the returned `task_id` to poll task status, submit approval or rejection, and fetch the final report when `status` is `completed`. See **`docs/runbook.md`** for endpoint summary and operational notes.
-
-#### 9. Quality gates (developer)
-
-```bash
-make lint      # ruff check
-make format    # ruff format
-make typecheck # mypy app/
-make test      # pytest
-```
-
-#### 10. Offline evaluation harness
-
-```bash
-make evaluate
-```
-
-Writes **`eval/results/eval_YYYY-MM-DD.json`** (gitignored). Requires project root on `PYTHONPATH` (the Makefile sets this).
 
 ### Architecture Decisions
 
